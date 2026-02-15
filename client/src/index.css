@@ -1,0 +1,51 @@
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@200..700&family=Rubik:ital,wght@0,300..900;1,300..900&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body{
+   font-family: "Rubik", serif;
+}
+
+.same_height{
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+@keyframes flashing-border {
+    0% {
+      border-image-source: linear-gradient(90deg, #ff00ff, #ffcc00);
+    }
+    25% {
+      border-image-source: linear-gradient(180deg, #ff00ff, #ffcc00);
+    }
+    50% {
+      border-image-source: linear-gradient(270deg, #ff00ff, #ffcc00);
+    }
+    75% {
+      border-image-source: linear-gradient(360deg, #ff00ff, #ffcc00);
+    }
+    100% {
+      border-image-source: linear-gradient(90deg, #ff00ff, #ffcc00);
+    }
+  }
+  
+  .flashing-border {
+    position: relative;
+    border: 6px solid transparent;
+    border-radius: 0px;
+    border-image-slice: 1;
+    animation: flashing-border 2s linear infinite;
+  }
+
+  .focus\:ring-4:focus {
+    box-shadow: none !important;
+}

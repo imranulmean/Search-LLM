@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/watchdog.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="https://cdn.datatables.net/2.3.6/css/dataTables.dataTables.css" rel="stylesheet" type="text/css">
+    <link href="https://cdn.datatables.net/buttons/3.2.6/css/buttons.dataTables.css" rel="stylesheet" type="text/css">
+    
+    <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+    <script src="https://cdn.datatables.net/2.3.6/js/dataTables.js"></script>
+
+    <script src="https://cdn.datatables.net/buttons/3.2.6/js/dataTables.buttons.js"></script>
+    <script src="https://cdn.datatables.net/buttons/3.2.6/js/buttons.dataTables.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+    <script src="https://cdn.datatables.net/buttons/3.2.6/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/3.2.6/js/buttons.print.min.js"></script>
+
+    <script src="https://cdn.datatables.net/plug-ins/2.3.6/features/scrollResize/dataTables.scrollResize.min.js"></script>
+    
+    <title>The Manager</title>
+  </head>
+  <body>
+    <script>
+      window.global = window;
+    </script>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
