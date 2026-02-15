@@ -34,87 +34,87 @@ const CONFIG = {
   ffmpeg: "G:/Node Projects/ffmpeg/ffmpeg-8.0.1-essentials_build/bin/ffmpeg.exe",
 };
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/");
-  },
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname); // keep extension
-    cb(null, file.originalname + ext);
-  }
-});
+// const storage = multer.diskStorage({
+//   destination: (req, file, cb) => {
+//     cb(null, "uploads/");
+//   },
+//   filename: (req, file, cb) => {
+//     const ext = path.extname(file.originalname); // keep extension
+//     cb(null, file.originalname + ext);
+//   }
+// });
 
-const upload = multer({ storage });
+// const upload = multer({ storage });
 
-app.post('/transcribe', upload.single('audio'), async (req, res) => {
-    try {
-      if (!req.file) return res.status(400).json({ error: "No audio file" });
+// app.post('/transcribe', upload.single('audio'), async (req, res) => {
+//     try {
+//       if (!req.file) return res.status(400).json({ error: "No audio file" });
   
-      const inputPath = path.resolve(req.file.path);
-      const outputPath = inputPath + "_fixed.wav";
+//       const inputPath = path.resolve(req.file.path);
+//       const outputPath = inputPath + "_fixed.wav";
   
-      console.log(`--- New Request: ${req.file.originalname} ---`);
+//       console.log(`--- New Request: ${req.file.originalname} ---`);
   
-      // STEP 1: CONVERT TO WHISPER-READY WAV
-      // Forced 16kHz, Mono, PCM 16-bit
-      const ffmpegCmd = `"${CONFIG.ffmpeg}" -i "${inputPath}" -ar 16000 -ac 1 -c:a pcm_s16le "${outputPath}" -y`;
+//       // STEP 1: CONVERT TO WHISPER-READY WAV
+//       // Forced 16kHz, Mono, PCM 16-bit
+//       const ffmpegCmd = `"${CONFIG.ffmpeg}" -i "${inputPath}" -ar 16000 -ac 1 -c:a pcm_s16le "${outputPath}" -y`;
   
-      console.log("[1/2] Converting audio with FFmpeg...");
+//       console.log("[1/2] Converting audio with FFmpeg...");
       
-      exec(ffmpegCmd, async (fErr) => {
-        if (fErr) {
-          console.error("FFmpeg Error:", fErr.message);
-          return res.status(500).json({ error: "Audio conversion failed" });
-        }
-        const transcribe=await runWishper(outputPath);        
-        fs.unlink(inputPath, () => {});
-        fs.unlink(outputPath, () => {});
-        res.json(transcribe);
-      });
+//       exec(ffmpegCmd, async (fErr) => {
+//         if (fErr) {
+//           console.error("FFmpeg Error:", fErr.message);
+//           return res.status(500).json({ error: "Audio conversion failed" });
+//         }
+//         const transcribe=await runWishper(outputPath);        
+//         fs.unlink(inputPath, () => {});
+//         fs.unlink(outputPath, () => {});
+//         res.json(transcribe);
+//       });
   
-    } catch (err) {
-      console.error("Route Error:", err);
-      res.status(500).json({ error: "Internal Server Error" });
-    }
-  });
+//     } catch (err) {
+//       console.error("Route Error:", err);
+//       res.status(500).json({ error: "Internal Server Error" });
+//     }
+//   });
 
-async function runWishper(filepath) {
-    // const audioPath = "G:/Node Projects/Whisper CPP/Release/test.wav";
-    const audioPath = filepath;
+// async function runWishper(filepath) {
+//     // const audioPath = "G:/Node Projects/Whisper CPP/Release/test.wav";
+//     const audioPath = filepath;
 
-    console.log("🚀 Initializing Official Whisper Pipeline...");
+//     console.log("🚀 Initializing Official Whisper Pipeline...");
 
-    try {
-        // We use 'q8' (8-bit quantization) to stay under the Windows 2GB memory limit
-        const transcriber = await pipeline(
-            'automatic-speech-recognition', 
-            'onnx-community/whisper-large-v3-turbo', 
-            { 
-                dtype: 'q8', 
-                device: 'cpu' 
-            }
-        );
+//     try {
+//         // We use 'q8' (8-bit quantization) to stay under the Windows 2GB memory limit
+//         const transcriber = await pipeline(
+//             'automatic-speech-recognition', 
+//             'onnx-community/whisper-large-v3-turbo', 
+//             { 
+//                 dtype: 'q8', 
+//                 device: 'cpu' 
+//             }
+//         );
 
-        console.log("✅ Model Ready. Reading Audio...");
-        if (!fs.existsSync(audioPath)) throw new Error("File not found!");
+//         console.log("✅ Model Ready. Reading Audio...");
+//         if (!fs.existsSync(audioPath)) throw new Error("File not found!");
 
-        const buffer = fs.readFileSync(audioPath);
-        const wav = new wavefile.WaveFile(buffer);
-        wav.toBitDepth('32f'); 
-        wav.toSampleRate(16000);
-        let audioData = wav.getSamples();
-        if (Array.isArray(audioData)) audioData = audioData[0];
+//         const buffer = fs.readFileSync(audioPath);
+//         const wav = new wavefile.WaveFile(buffer);
+//         wav.toBitDepth('32f'); 
+//         wav.toSampleRate(16000);
+//         let audioData = wav.getSamples();
+//         if (Array.isArray(audioData)) audioData = audioData[0];
 
-        console.log("📝 Transcribing...");
-        const result = await transcriber(audioData);
-        console.log("\n--- RESULT ---\n" + JSON.stringify(result));    
-        console.log("\n--- RESULT ---\n" + result.text);
-        return result.text;
+//         console.log("📝 Transcribing...");
+//         const result = await transcriber(audioData);
+//         console.log("\n--- RESULT ---\n" + JSON.stringify(result));    
+//         console.log("\n--- RESULT ---\n" + result.text);
+//         return result.text;
 
-    } catch (err) {
-        console.error("❌ CRASH PREVENTED:", err);
-    }
-}
+//     } catch (err) {
+//         console.error("❌ CRASH PREVENTED:", err);
+//     }
+// }
 
 server.listen(3001, () => {
   console.log('Server is running on port 3001');
@@ -123,22 +123,29 @@ server.listen(3001, () => {
 
 import { Server } from "socket.io";
 
+const users = {};
+
 const io = new Server(server, {
   cors: {
-    origin: "*", // Replace '*' with your specific React URL for better security
+    origin: "*",
     methods: ["GET", "POST"],
     credentials: true
   }
 });
 
 io.on("connection", (socket) => {
+
+  users[socket.id] = socket.id;
 	// 1. Send the connected user their unique ID
 	socket.emit("me", socket.id);
 
-	// 2. When a user disconnects
-	socket.on("disconnect", () => {
-		socket.broadcast.emit("callEnded");
-	});
+  // 2. Send the updated user list to EVERYONE
+  io.emit("updateUserList", Object.values(users));
+  socket.on("disconnect", () => {
+    delete users[socket.id]; // Remove user
+    io.emit("updateUserList", Object.values(users)); // Update everyone
+    socket.broadcast.emit("callEnded");
+  });
 
 	// 3. User A initiates a call to User B
 	socket.on("callUser", (data) => {
