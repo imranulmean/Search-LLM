@@ -1,6 +1,6 @@
-import { pipeline, env } from "@huggingface/transformers"; // Use the NEW package
-import wavefile from 'wavefile';
-import { exec } from 'child_process';
+// import { pipeline, env } from "@huggingface/transformers"; 
+// import wavefile from 'wavefile';
+// import { exec } from 'child_process';
 
 import express from 'express';
 import cookieParser from 'cookie-parser';
@@ -11,10 +11,12 @@ import dotenv from 'dotenv';
 import fs from 'fs';
 import multer from 'multer';
 
+import {StreamClient} from '@stream-io/node-sdk';
+
 // --- CRITICAL WINDOWS STABILITY SETTINGS ---
-env.backends.onnx.wasm.simd = false; // Disable SIMD (fixes 'Illegal Instruction' crashes)
-env.backends.onnx.wasm.numThreads = 1;
-env.allowLocalModels = false;
+// env.backends.onnx.wasm.simd = false; // Disable SIMD (fixes 'Illegal Instruction' crashes)
+// env.backends.onnx.wasm.numThreads = 1;
+// env.allowLocalModels = false;
 
 dotenv.config();
 
@@ -33,6 +35,35 @@ app.use(cookieParser());
 const CONFIG = {
   ffmpeg: "G:/Node Projects/ffmpeg/ffmpeg-8.0.1-essentials_build/bin/ffmpeg.exe",
 };
+
+///////////////////Stream IO Audio Video //////////////
+
+// REPLACE THESE with your actual keys from GetStream Dashboard
+const API_KEY = 'jkcwe5uw5yj5';
+const API_SECRET = 'h425ue8a2adnv7ex5m88bq3qq53aaeg8ygt287745j8vw78hb5dvuaprztvferaj'; 
+
+const client = new StreamClient(API_KEY, API_SECRET);
+
+app.post('/get-token', (req, res) => {
+    try {
+        const { userId } = req.body;
+        if (!userId) return res.status(400).json({ error: 'User ID is required' });
+
+        // validity_in_seconds: 3600 = 1 hour
+        const token = client.generateUserToken({ 
+            user_id: userId, 
+            validity_in_seconds: 3600 
+        });
+
+        res.json({ token });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+////////////////////////////////////////////
+
 
 // const storage = multer.diskStorage({
 //   destination: (req, file, cb) => {
@@ -135,12 +166,17 @@ const io = new Server(server, {
 
 io.on("connection", (socket) => {
 
+  const username = socket.handshake.auth.username;
+
   users[socket.id] = socket.id;
+  // users[socket.id]={socketId: socket.id, username};
+  console.log(Object.values(users));
 	// 1. Send the connected user their unique ID
 	socket.emit("me", socket.id);
 
   // 2. Send the updated user list to EVERYONE
   io.emit("updateUserList", Object.values(users));
+
   socket.on("disconnect", () => {
     delete users[socket.id]; // Remove user
     io.emit("updateUserList", Object.values(users)); // Update everyone
@@ -160,4 +196,10 @@ io.on("connection", (socket) => {
 	socket.on("answerCall", (data) => {
 		io.to(data.to).emit("callAccepted", data.signal);
 	});
+
+  /////////////////Chat Options ////////////
+  socket.on('outgoing', (data)=>{
+    io.to(data.fid).emit('incoming', data);
+  })
+
 });
