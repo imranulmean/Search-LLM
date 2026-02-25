@@ -165,30 +165,30 @@ const io = new Server(server, {
 });
 
 io.on("connection", (socket) => {
-  const userId = socket.handshake.auth.username || socket.id;
-  users[socket.id] = userId;
+    const userId = socket.handshake.auth.username || socket.id;
+    users[socket.id] = userId;
 
-  socket.emit("me", socket.id);
-  io.emit("updateUserList", users);
+    socket.emit("me", socket.id);
+    io.emit("updateUserList", users);
 
-  // 2. User A calls User B
-  socket.on("callUser", ({ userToCall, from, callId }) => {
-      io.to(userToCall).emit("callUser", { 
-          from: from, // sending socketId so B knows where to reply
-          fromUserId: from, // the string ID
-          callId: callId 
-      });
-  });
+    // 2. User A calls User B
+    socket.on("callUser", ({ userToCall, from, callId }) => {
+        io.to(userToCall).emit("callUser", { 
+            from: socket.id, // sending socketId so B knows where to reply
+            fromUserId: from, // the string ID
+            callId: callId 
+        });
+    });
 
-  // 3. User B answers User A
-  socket.on("answerCall", (data) => {
-      io.to(data.to).emit("callAccepted");
-  });
+    // 3. User B answers User A
+    socket.on("answerCall", (data) => {
+        io.to(data.to).emit("callAccepted");
+    });
 
-  socket.on("disconnect", () => {
-      delete users[socket.id];
-      io.emit("updateUserList", users);
-  });
+    socket.on("disconnect", () => {
+        delete users[socket.id];
+        io.emit("updateUserList", users);
+    });
 });
 
 // io.on("connection", (socket) => {
