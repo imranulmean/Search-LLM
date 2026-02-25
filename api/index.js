@@ -165,41 +165,68 @@ const io = new Server(server, {
 });
 
 io.on("connection", (socket) => {
+  const userId = socket.handshake.auth.username || socket.id;
+  users[socket.id] = userId;
 
-  const username = socket.handshake.auth.username;
+  socket.emit("me", socket.id);
+  io.emit("updateUserList", users);
 
-  users[socket.id] = socket.id;
-  // users[socket.id]={socketId: socket.id, username};
-  console.log(Object.values(users));
-	// 1. Send the connected user their unique ID
-	socket.emit("me", socket.id);
-
-  // 2. Send the updated user list to EVERYONE
-  io.emit("updateUserList", Object.values(users));
-
-  socket.on("disconnect", () => {
-    delete users[socket.id]; // Remove user
-    io.emit("updateUserList", Object.values(users)); // Update everyone
-    socket.broadcast.emit("callEnded");
+  // 2. User A calls User B
+  socket.on("callUser", ({ userToCall, from, callId }) => {
+      io.to(userToCall).emit("callUser", { 
+          from: from, // sending socketId so B knows where to reply
+          fromUserId: from, // the string ID
+          callId: callId 
+      });
   });
 
-	// 3. User A initiates a call to User B
-	socket.on("callUser", (data) => {
-		io.to(data.userToCall).emit("callUser", { 
-            signal: data.signalData, 
-            from: data.from, 
-            name: data.name 
-        });
-	});
+  // 3. User B answers User A
+  socket.on("answerCall", (data) => {
+      io.to(data.to).emit("callAccepted");
+  });
 
-	// 4. User B answers the call from User A
-	socket.on("answerCall", (data) => {
-		io.to(data.to).emit("callAccepted", data.signal);
-	});
-
-  /////////////////Chat Options ////////////
-  socket.on('outgoing', (data)=>{
-    io.to(data.fid).emit('incoming', data);
-  })
-
+  socket.on("disconnect", () => {
+      delete users[socket.id];
+      io.emit("updateUserList", users);
+  });
 });
+
+// io.on("connection", (socket) => {
+
+//   const username = socket.handshake.auth.username;
+
+//   users[socket.id] = socket.id;
+//   // users[socket.id]={socketId: socket.id, username};
+//   console.log(Object.values(users));
+// 	// 1. Send the connected user their unique ID
+// 	socket.emit("me", socket.id);
+
+//   // 2. Send the updated user list to EVERYONE
+//   io.emit("updateUserList", Object.values(users));
+
+//   socket.on("disconnect", () => {
+//     delete users[socket.id]; // Remove user
+//     io.emit("updateUserList", Object.values(users)); // Update everyone
+//     socket.broadcast.emit("callEnded");
+//   });
+
+// 	// 3. User A initiates a call to User B
+// 	socket.on("callUser", (data) => {
+// 		io.to(data.userToCall).emit("callUser", { 
+//             signal: data.signalData, 
+//             from: data.from, 
+//             name: data.name 
+//         });
+// 	});
+
+// 	// 4. User B answers the call from User A
+// 	socket.on("answerCall", (data) => {
+// 		io.to(data.to).emit("callAccepted", data.signal);
+// 	});
+
+//   /////////////////Chat Options ////////////
+//   socket.on('outgoing', (data)=>{
+//     io.to(data.fid).emit('incoming', data);
+//   })
+
+// });
