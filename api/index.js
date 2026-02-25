@@ -39,8 +39,8 @@ const CONFIG = {
 ///////////////////Stream IO Audio Video //////////////
 
 // REPLACE THESE with your actual keys from GetStream Dashboard
-const API_KEY = 'jkcwe5uw5yj5';
-const API_SECRET = 'h425ue8a2adnv7ex5m88bq3qq53aaeg8ygt287745j8vw78hb5dvuaprztvferaj'; 
+const API_KEY = process.env.API_KEY;
+const API_SECRET = process.env.API_SECRET; 
 
 const client = new StreamClient(API_KEY, API_SECRET);
 
