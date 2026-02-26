@@ -172,10 +172,10 @@ io.on("connection", (socket) => {
     io.emit("updateUserList", users);
 
     // 2. User A calls User B
-    socket.on("callUser", ({ userToCall, from, callId }) => {
+    socket.on("callUser", ({ userToCall, from, fromUserId,callId }) => {
         io.to(userToCall).emit("callUser", { 
             from: socket.id, // sending socketId so B knows where to reply
-            fromUserId: from, // the string ID
+            fromUserId: fromUserId, // the string ID
             callId: callId 
         });
     });
