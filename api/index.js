@@ -185,6 +185,11 @@ io.on("connection", (socket) => {
         io.to(data.to).emit("callAccepted");
     });
 
+    /////////////////Chat Options ////////////
+    socket.on('outgoing', (data)=>{
+      io.to(data.fid).emit('incoming', data);
+    })    
+
     socket.on("disconnect", () => {
         delete users[socket.id];
         io.emit("updateUserList", users);
