@@ -164,6 +164,19 @@ const io = new Server(server, {
   }
 });
 
+const getPublicRoomUsers = () => {
+  const clients = io.sockets.adapter.rooms.get("public_room");
+  const roomUsers = {};
+  if (clients) {
+      clients.forEach((socketId) => {
+          if (users[socketId]) {
+              roomUsers[socketId] = users[socketId];
+          }
+      });
+  }
+  return roomUsers;
+};
+
 io.on("connection", (socket) => {
     const userId = socket.handshake.auth.username || socket.id;
     users[socket.id] = userId;
@@ -188,7 +201,44 @@ io.on("connection", (socket) => {
     /////////////////Chat Options ////////////
     socket.on('outgoing', (data)=>{
       io.to(data.fid).emit('incoming', data);
-    })    
+    });
+
+    // --- PUBLIC ROOM LOGIC ---
+        
+    socket.on("join_public", () => {
+      socket.join("public_room");
+      
+      // Notify everyone in the room to update their member list
+      io.to("public_room").emit("update_room_users", getPublicRoomUsers());
+      
+      // Optional: Send a "User joined" message to the chat
+      io.to("public_room").emit("receive_group_msg", {
+          username: "System",
+          text: `${userId} joined the lounge.`,
+          isSystem: true
+      });
+    });
+
+    socket.on("send_group_msg", (data) => {
+      // Broadcast message to everyone in the public room
+      io.to("public_room").emit("receive_group_msg", {
+          username: data.username,
+          text: data.text,
+          id: socket.id
+      });
+    });    
+
+    socket.on("disconnecting", () => {
+      // Before the socket is fully gone, notify rooms it was in
+      socket.rooms.forEach(room => {
+          if (room === "public_room") {
+              // We use a small timeout to let the socket finish leaving
+              setTimeout(() => {
+                  io.to("public_room").emit("update_room_users", getPublicRoomUsers());
+              }, 100);
+          }
+      });
+    });
 
     socket.on("disconnect", () => {
         delete users[socket.id];
